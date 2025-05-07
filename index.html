@@ -2,16 +2,94 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Stopwatch con React Hooks</title>
+  <title>Stopwatch con React Hooks - Estilo Mejorado</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <!-- React y ReactDOM desde CDN -->
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <!-- Babel para JSX -->
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .session { margin-top: 5px; }
-    button { margin-right: 5px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #74ABE2 0%, #5563DE 100%);
+      color: #333;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .stopwatch-container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      width: 320px;
+      padding: 24px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #5563DE;
+    }
+    .time-display {
+      font-size: 3rem;
+      font-weight: 500;
+      margin-bottom: 24px;
+      letter-spacing: 2px;
+    }
+    .buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .btn {
+      flex: 1;
+      padding: 10px 0;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .btn-start {
+      background: #5563DE;
+      color: #fff;
+    }
+    .btn-reset {
+      background: #E74C3C;
+      color: #fff;
+    }
+    .btn-save {
+      background: #2ECC71;
+      color: #fff;
+    }
+    .sessions {
+      text-align: left;
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: 10px;
+      padding-right: 4px;
+    }
+    .session {
+      font-size: 0.85rem;
+      padding: 6px 8px;
+      border-bottom: 1px solid #f0f0f0;
+    }
   </style>
 </head>
 <body>
@@ -20,26 +98,18 @@
     const { useState, useEffect, useRef } = React;
 
     function Stopwatch() {
-      // Estado del tiempo en segundos
       const [time, setTime] = useState(0);
-      // Estado de ejecución (corriendo o no)
       const [isRunning, setIsRunning] = useState(false);
-      // Lista de sesiones guardadas
       const [sessions, setSessions] = useState([]);
-      // Referencia para guardar el ID del intervalo
       const intervalRef = useRef(null);
 
-      // Efecto para manejar el temporizador
       useEffect(() => {
         if (isRunning) {
-          intervalRef.current = setInterval(() => {
-            setTime(prev => prev + 1);
-          }, 1000);
+          intervalRef.current = setInterval(() => setTime(prev => prev + 1), 1000);
         } else if (intervalRef.current) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
         }
-        // Limpieza al desmontar o cambiar isRunning
         return () => {
           if (intervalRef.current) {
             clearInterval(intervalRef.current);
@@ -47,44 +117,31 @@
         };
       }, [isRunning]);
 
-      // Alternar inicio/pausa
-      const handleStartPause = () => {
-        setIsRunning(prev => !prev);
-      };
+      const handleStartPause = () => setIsRunning(prev => !prev);
+      const handleReset = () => { setIsRunning(false); setTime(0); };
+      const handleSaveSession = () => setSessions(prev => [...prev, time]);
 
-      // Reiniciar temporizador
-      const handleReset = () => {
-        setIsRunning(false);
-        setTime(0);
-      };
-
-      // Guardar sesión actual
-      const handleSaveSession = () => {
-        setSessions(prev => [...prev, time]);
-      };
-
-      // Mostrar tiempo en formato HH:MM:SS
-      const formatTime = seconds => {
-        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-        const s = (seconds % 60).toString().padStart(2, '0');
+      const formatTime = sec => {
+        const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+        const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
         return `${h}:${m}:${s}`;
       };
 
       return (
-        <div>
+        <div className="stopwatch-container">
           <h1>Stopwatch</h1>
-          <div style={{ fontSize: '2em', marginBottom: '10px' }}>
-            {formatTime(time)}
+          <div className="time-display">{formatTime(time)}</div>
+          <div className="buttons">
+            <button className="btn btn-start" onClick={handleStartPause}>
+              {isRunning ? 'Pausar' : 'Iniciar'}
+            </button>
+            <button className="btn btn-reset" onClick={handleReset}>Reiniciar</button>
+            <button className="btn btn-save" onClick={handleSaveSession} disabled={time === 0}>
+              Guardar
+            </button>
           </div>
-          <button onClick={handleStartPause}>
-            {isRunning ? 'Pausar' : 'Iniciar'}
-          </button>
-          <button onClick={handleReset}>Reiniciar</button>
-          <button onClick={handleSaveSession} disabled={time === 0}>
-            Guardar sesión
-          </button>
-          <div>
+          <div className="sessions">
             {sessions.map((t, i) => (
               <div key={i} className="session">
                 Sesión {i + 1}: {formatTime(t)}
